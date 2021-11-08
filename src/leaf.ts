@@ -39,7 +39,7 @@ export const initializeLeaf = (app: Application) => {
     leafVelocity(leaf);
 };
 
-const angles = [0.4, 0.267, 0.133, -0.133, -0.267, -0.4];
+const angles = [0.4, 0.2, -0.2, -0.4];
 let currentTwist = Math.floor(angles.length / 2);
 
 const MAX_RIGHT = angles.length - 1;
@@ -59,15 +59,39 @@ const onPressRight = () => {
     setTwist(++currentTwist);
 };
 
+let isKeyDown = false;
+let timeoutId: number;
 const onKeyDown = (key: KeyboardEvent) => {
-    if (key.code === "KeyA" || key.code === "ArrowLeft") {
-        onPressLeft();
-    }
+    if (isKeyDown) return;
+    isKeyDown = true;
 
-    if (key.code === "KeyD" || key.code === "ArrowRight") {
-        onPressRight();
+    clearTimeout(timeoutId);
+
+    timeoutId = setTimeout(function updateAngle() {
+
+        if (!isKeyDown) return
+
+        setAngle();
+
+        timeoutId = setTimeout(updateAngle, 125)
+    }, 50);
+
+    function setAngle() {
+        if (key.code === "KeyA" || key.code === "ArrowLeft") {
+            onPressLeft();
+        }
+
+        if (key.code === "KeyD" || key.code === "ArrowRight") {
+            onPressRight();
+        }
     }
 };
+
+const onKeyUp = () => {
+    clearTimeout(timeoutId)
+    isKeyDown = false
+};
+
 
 const leafVelocity = (leaf: Container) => {
     Ticker.shared.add(() => {
@@ -83,5 +107,5 @@ const leafVelocity = (leaf: Container) => {
 }
 
 
-
 document.addEventListener("keydown", onKeyDown);
+document.addEventListener("keyup", onKeyUp);
