@@ -1,11 +1,11 @@
 import {Application, Container, Texture, Ticker,} from "pixi.js";
+import {PixelateFilter} from '@pixi/filter-pixelate';
 
 import {bindDownwardVelocity} from "./leaf";
 import {SpriteIntersect} from "./vendorTypes/yy-intersect";
+import brickIconography from "./assets/bricks_smallllll.jpg";
 
-let wallTexture = Texture.from(
-    "https://assets.codepen.io/195953/bricks_halfsy.png"
-);
+let wallTexture = Texture.from(brickIconography);
 
 let downwardVelocity = 6;
 bindDownwardVelocity((v: number) => {
@@ -21,7 +21,7 @@ export const initializeBrickWalls = (app: Application) => {
     const xScale = 0.25;
     const yScale = 0.6;
     const leftWall = createWall({
-        x: -app.screen.width * xScale, // relative to wallsContainer
+        x: -app.screen.width * xScale,
         y: 0,
         anchor: {x: 0.5, y: 0.5}
     });
@@ -31,6 +31,9 @@ export const initializeBrickWalls = (app: Application) => {
         y: app.screen.height * yScale,
         anchor: {x: 0.5, y: 0.5}
     });
+
+    leftWall.filters = [new PixelateFilter(5)];
+    rightWall.filters = [new PixelateFilter(5)];
 
     wallsContainer.addChild(leftWall);
     wallsContainer.addChild(rightWall);
@@ -60,14 +63,14 @@ interface Wall extends MyCoord {
 }
 
 function createWall({x, y, anchor}: Wall): SpriteIntersect {
-    const yScale = 1
     const wall = new SpriteIntersect(wallTexture);
     wall.name = `wall-${x}`
 
     wall.x = x;
     wall.y = y;
     wall.anchor.set(anchor.x, anchor.y);
-    wall.transform.scale.set(1, yScale);
+    wall.width = 300;
+    wall.height = 40;
     return wall;
 }
 

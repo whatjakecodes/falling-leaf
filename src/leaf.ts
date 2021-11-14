@@ -6,6 +6,7 @@ import {
 import leafIconography from "./assets/leaf.svg";
 import {SpriteIntersect} from "./vendorTypes/yy-intersect";
 import {getWallRectPoints} from "./walls";
+import {PixelateFilter} from "@pixi/filter-pixelate";
 
 let leaf: Container;
 const DEFAULT_ROTATION = Math.PI;
@@ -24,12 +25,12 @@ export const initializeLeaf = (app: Application) => {
     container.x = app.screen.width / 2;
     container.y = app.screen.height / 2;
 
-    // const {width,height} = leafTexture;
     const leafSpriteIntersect = new SpriteIntersect(leafTexture);
     leafSpriteIntersect.anchor.x = 0.5;
     leafSpriteIntersect.anchor.y = 0.5;
     leafSpriteIntersect.scale.x = 0.5;
     leafSpriteIntersect.scale.y = 0.5;
+    leafSpriteIntersect.filters = [new PixelateFilter(3)];
 
     container.addChild(leafSpriteIntersect);
 
