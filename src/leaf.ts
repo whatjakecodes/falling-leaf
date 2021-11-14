@@ -1,10 +1,11 @@
 import {
     Texture,
-    Sprite,
     Container, Application, Ticker
 } from "pixi.js";
 
 import leafIconography from "./assets/leaf.svg";
+import {SpriteIntersect} from "./vendorTypes/yy-intersect";
+import {getWallRect} from "./walls";
 
 let leaf: Container;
 const DEFAULT_ROTATION = Math.PI;
@@ -15,20 +16,26 @@ export const bindDownwardVelocity = (doFunction: (x: number) => void) => {
 };
 
 export const initializeLeaf = (app: Application) => {
-    const leafRasterTexture = Texture.from(
+    const leafTexture = Texture.from(
         leafIconography
     );
 
-    const leafRaster = new Sprite(leafRasterTexture);
-    leafRaster.anchor.x = 0.5;
-    leafRaster.anchor.y = 0.5;
-    leafRaster.scale.x = 0.5;
-    leafRaster.scale.y = 0.5;
-
     let container = new Container();
-    container.addChild(leafRaster);
     container.x = app.screen.width / 2;
     container.y = app.screen.height / 2;
+
+    const width = 100;
+    const height = 125;
+    // const {width,height} = leafTexture;
+    const leafSpriteIntersect = new SpriteIntersect(leafTexture, {width,height});
+    leafSpriteIntersect.anchor.x = 0.5;
+    leafSpriteIntersect.anchor.y = 0.5;
+    leafSpriteIntersect.scale.x = 0.5;
+    leafSpriteIntersect.scale.y = 0.5;
+
+    container.addChild(leafSpriteIntersect);
+
+    leafSpriteIntersect.name = "LEAF"
 
     leaf = container;
 
@@ -92,15 +99,22 @@ const onKeyUp = () => {
     isKeyDown = false
 };
 
-
+let timer = 0;
 const leafVelocity = (leaf: Container) => {
     Ticker.shared.add(() => {
-        leaf.x = leaf.x + (leaf.rotation - DEFAULT_ROTATION) / Math.PI * -12;
-
+        timer += 1;
+        const leafSprite = leaf.getChildAt(0) as SpriteIntersect;
+        let wallRect = getWallRect(0);
+        if(leafSprite.shape.collidesRectangle(wallRect) && timer > 60*2) {
+            // onVelocityUpdate(0);
+            // return;
+        }
 
         // from 2 - 6
+        leaf.x = leaf.x + (leaf.rotation - DEFAULT_ROTATION) / Math.PI * -12;
         const MAX_VELOCITY = 10;
         let newDownAngle = Math.abs(leaf.rotation - DEFAULT_ROTATION) / Math.PI;
+
         const newDownwardVelocity = MAX_VELOCITY - newDownAngle * MAX_VELOCITY;
         onVelocityUpdate(newDownwardVelocity);
     })

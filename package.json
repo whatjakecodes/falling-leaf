@@ -7,7 +7,8 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "pixi.js": "^6.2.0"
+    "pixi.js": "^6.2.0",
+    "yy-intersects": "^1.0.8"
   },
   "devDependencies": {
     "typescript": "^4.3.2",
