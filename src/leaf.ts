@@ -5,7 +5,7 @@ import {
 
 import leafIconography from "./assets/leaf.svg";
 import {SpriteIntersect} from "./vendorTypes/yy-intersect";
-import {getWallRect} from "./walls";
+import {getWallRectPoints} from "./walls";
 
 let leaf: Container;
 const DEFAULT_ROTATION = Math.PI;
@@ -24,10 +24,8 @@ export const initializeLeaf = (app: Application) => {
     container.x = app.screen.width / 2;
     container.y = app.screen.height / 2;
 
-    const width = 100;
-    const height = 125;
     // const {width,height} = leafTexture;
-    const leafSpriteIntersect = new SpriteIntersect(leafTexture, {width,height});
+    const leafSpriteIntersect = new SpriteIntersect(leafTexture);
     leafSpriteIntersect.anchor.x = 0.5;
     leafSpriteIntersect.anchor.y = 0.5;
     leafSpriteIntersect.scale.x = 0.5;
@@ -101,13 +99,15 @@ const onKeyUp = () => {
 
 let timer = 0;
 const leafVelocity = (leaf: Container) => {
-    Ticker.shared.add(() => {
+    const captured = Ticker.shared.add(() => {
         timer += 1;
-        const leafSprite = leaf.getChildAt(0) as SpriteIntersect;
-        let wallRect = getWallRect(0);
-        if(leafSprite.shape.collidesRectangle(wallRect) && timer > 60*2) {
-            // onVelocityUpdate(0);
-            // return;
+        const leafSprite = leaf.getChildAt(0) as SpriteIntersect ;
+        let wallRectPoints1 = getWallRectPoints(0);
+        let wallRectPoints2 = getWallRectPoints(1);
+        if(timer > 60*2 && (leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2))) {
+            onVelocityUpdate(0);
+            captured.stop()
+            return;
         }
 
         // from 2 - 6

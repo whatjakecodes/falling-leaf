@@ -1,12 +1,7 @@
-import {
-    Texture,
-    Container,
-    Ticker,
-    Application
-} from "pixi.js";
+import {Application, Container, Texture, Ticker,} from "pixi.js";
 
-import { bindDownwardVelocity } from "./leaf";
-import {SpriteIntersect, setY, YyShape} from "./vendorTypes/yy-intersect";
+import {bindDownwardVelocity} from "./leaf";
+import {SpriteIntersect} from "./vendorTypes/yy-intersect";
 
 let wallTexture = Texture.from(
     "https://assets.codepen.io/195953/bricks_halfsy.png"
@@ -28,13 +23,13 @@ export const initializeBrickWalls = (app: Application) => {
     const leftWall = createWall({
         x: -app.screen.width * xScale, // relative to wallsContainer
         y: 0,
-        anchor: { x: 0.5, y: 0.5 }
+        anchor: {x: 0.5, y: 0.5}
     });
 
     const rightWall = createWall({
         x: app.screen.width * xScale,
         y: app.screen.height * yScale,
-        anchor: { x: 0.5, y: 0.5 }
+        anchor: {x: 0.5, y: 0.5}
     });
 
     wallsContainer.addChild(leftWall);
@@ -47,43 +42,48 @@ export const initializeBrickWalls = (app: Application) => {
 function endlessScroll(app: Application, container: Container) {
     const ticker = Ticker.shared;
     ticker.add(() => {
-        // todo: this constant will vary based on leaf rotation
         container.y = container.y - downwardVelocity;
 
         const topWall = container.getChildAt(0) as SpriteIntersect;
         if (topWall.y + topWall.height / 2 + container.y < 0) {
             container.removeChild(topWall);
-            setY(topWall, app.screen.height - container.y + topWall.height / 2);
-            // topWall.y = app.screen.height - container.y + topWall.height;
+            topWall.y = app.screen.height - container.y + topWall.height / 2
             container.addChild(topWall);
         }
-
     })
 }
 
-export type MyCoord = {x: number, y: number};
+export type MyCoord = { x: number, y: number };
 
 interface Wall extends MyCoord {
     anchor: MyCoord
 }
 
-function createWall({ x, y, anchor }: Wall): SpriteIntersect {
-    const {width, height: textureHeight} = {width: 300, height: 224};
+function createWall({x, y, anchor}: Wall): SpriteIntersect {
     const yScale = 1
-    const height = textureHeight * yScale
-    const wall = new SpriteIntersect(wallTexture, {width, height});
+    const wall = new SpriteIntersect(wallTexture);
     wall.name = `wall-${x}`
 
     wall.x = x;
     wall.y = y;
     wall.anchor.set(anchor.x, anchor.y);
     wall.transform.scale.set(1, yScale);
-    // wall.transform.position.x
     return wall;
 }
 
+export function getWallRectPoints(index: number): number[] {
+    let wall = wallsContainer.getChildAt(index).getBounds();
+    const topLeftX = wall.x
+    const topLeftY = wall.y
 
-export function getWallRect(index: number): YyShape {
-    let wall = wallsContainer.getChildAt(index) as SpriteIntersect;
-    return wall.shape;
+    const topRightX = wall.x + wall.width
+    const topRightY = wall.y
+
+    const bottomRightX = wall.x + wall.width
+    const bottomRightY = wall.y + wall.height
+
+    const bottomLeftX = wall.x
+    const bottomLeftY = wall.y + wall.height
+
+    return [topLeftX, topLeftY, topRightX, topRightY, bottomRightX, bottomRightY, bottomLeftX, bottomLeftY];
 }
