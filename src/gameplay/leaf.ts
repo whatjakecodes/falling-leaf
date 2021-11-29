@@ -3,17 +3,19 @@ import {
     Container, Application, Ticker
 } from "pixi.js";
 
-import leafIconography from "./assets/leaf.svg";
-import {SpriteIntersect} from "./vendorTypes/yy-intersect";
+import leafIconography from "../assets/leaf.svg";
+import {SpriteIntersect} from "../vendorTypes/yy-intersect";
 import {getWallRectPoints} from "./walls";
-import {PixelateFilter} from "@pixi/filter-pixelate";
+import {endGame} from "../menu";
 
 let leaf: Container;
 const DEFAULT_ROTATION = Math.PI;
 
-let onVelocityUpdate: (x: number) => void;
-export const bindDownwardVelocity = (doFunction: (x: number) => void) => {
-    onVelocityUpdate = doFunction
+export type VelocityUpdater = (x: number) => void
+
+let setDownwardVelocity: VelocityUpdater;
+export const bindDownwardVelocity = (handler: VelocityUpdater) => {
+    setDownwardVelocity = handler
 };
 
 export const initializeLeaf = (app: Application) => {
@@ -30,7 +32,6 @@ export const initializeLeaf = (app: Application) => {
     leafSpriteIntersect.anchor.y = 0.5;
     leafSpriteIntersect.scale.x = 0.5;
     leafSpriteIntersect.scale.y = 0.5;
-    leafSpriteIntersect.filters = [new PixelateFilter(3)];
 
     container.addChild(leafSpriteIntersect);
 
@@ -42,7 +43,16 @@ export const initializeLeaf = (app: Application) => {
 
     app.stage.addChild(leaf);
 
-    leafVelocity(leaf);
+    startLeafVelocity(leaf);
+};
+
+export const restartLeaf = (app: Application) => {
+    // move leaf to top middle
+    leaf.x = app.screen.width / 2;
+    leaf.y = app.screen.height / 2;
+
+    setDownwardVelocity(6)
+    leafTicker.start()
 };
 
 const angles = [0.4, 0.2, -0.2, -0.4];
@@ -98,29 +108,34 @@ const onKeyUp = () => {
     isKeyDown = false
 };
 
-let timer = 0;
-const leafVelocity = (leaf: Container) => {
-    const captured = Ticker.shared.add(() => {
-        timer += 1;
+const WARMUP_TIME = 60*2;
+let warmupTimer = 0;
+let leafTicker: Ticker;
+const startLeafVelocity = (leaf: Container) => {
+    leafTicker = Ticker.shared.add(() => {
+        warmupTimer += 1;
         const leafSprite = leaf.getChildAt(0) as SpriteIntersect ;
-        let wallRectPoints1 = getWallRectPoints(0);
-        let wallRectPoints2 = getWallRectPoints(1);
-        if(timer > 60*2 && (leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2))) {
-            onVelocityUpdate(0);
-            captured.stop()
+        const wallRectPoints1 = getWallRectPoints(0);
+        const wallRectPoints2 = getWallRectPoints(1);
+        if(warmupTimer > WARMUP_TIME && (leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2))) {
+            endGame()
             return;
         }
 
         // from 2 - 6
         leaf.x = leaf.x + (leaf.rotation - DEFAULT_ROTATION) / Math.PI * -12;
-        const MAX_VELOCITY = 10;
+        const MAX_VELOCITY = 8;
         let newDownAngle = Math.abs(leaf.rotation - DEFAULT_ROTATION) / Math.PI;
 
         const newDownwardVelocity = MAX_VELOCITY - newDownAngle * MAX_VELOCITY;
-        onVelocityUpdate(newDownwardVelocity);
+        setDownwardVelocity(newDownwardVelocity);
     })
 }
 
+export const stopLeaf = () => {
+    if (leafTicker) leafTicker.stop()
+    setDownwardVelocity(0)
+}
 
 document.addEventListener("keydown", onKeyDown);
 document.addEventListener("keyup", onKeyUp);

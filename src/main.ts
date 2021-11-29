@@ -1,13 +1,10 @@
-import { initializeBrickWalls } from "./walls";
-import { initializeLeaf } from "./leaf";
-import { getApp } from "./app";
+import {getApp} from "./app";
+import {startGame} from "./menu";
 import * as PIXI from "pixi.js";
 
 const app = getApp();
 
-initializeLeaf(app);
-
-initializeBrickWalls(app);
+startGame(app);
 
 // @ts-ignore
 // get pixi dev tools working
