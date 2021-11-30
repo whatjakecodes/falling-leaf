@@ -46,10 +46,17 @@ export const initializeLeaf = (app: Application) => {
     startLeafVelocity(leaf);
 };
 
+export const getLeafTopY = () => {
+    return leaf.y - 0.5*leaf.height
+}
+
 export const restartLeaf = (app: Application) => {
     // move leaf to top middle
     leaf.x = app.screen.width / 2;
     leaf.y = app.screen.height / 2;
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
 
     setDownwardVelocity(6)
     leafTicker.start()
@@ -108,17 +115,14 @@ const onKeyUp = () => {
     isKeyDown = false
 };
 
-const WARMUP_TIME = 60*2;
-let warmupTimer = 0;
 let leafTicker: Ticker;
 const startLeafVelocity = (leaf: Container) => {
     leafTicker = Ticker.shared.add(() => {
-        warmupTimer += 1;
         const leafSprite = leaf.getChildAt(0) as SpriteIntersect ;
         const wallRectPoints1 = getWallRectPoints(0);
         const wallRectPoints2 = getWallRectPoints(1);
-        if(warmupTimer > WARMUP_TIME && (leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2))) {
-            endGame()
+        if(leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2)) {
+            onLeafCollision()
             return;
         }
 
@@ -135,6 +139,12 @@ const startLeafVelocity = (leaf: Container) => {
 export const stopLeaf = () => {
     if (leafTicker) leafTicker.stop()
     setDownwardVelocity(0)
+}
+
+const onLeafCollision = () => {
+    endGame();
+    document.removeEventListener("keydown", onKeyDown);
+    document.removeEventListener("keyup", onKeyUp);
 }
 
 document.addEventListener("keydown", onKeyDown);

@@ -1,6 +1,6 @@
 import {Application, Container, Sprite, Texture, Ticker,} from "pixi.js";
 
-import {bindDownwardVelocity} from "./leaf";
+import {bindDownwardVelocity, getLeafTopY} from "./leaf";
 import {SpriteIntersect} from "../vendorTypes/yy-intersect";
 import brickIconography from "../assets/bricks_smallllll.jpg";
 
@@ -44,7 +44,12 @@ export const stopWalls = () => {
     if (wallTicker) wallTicker.stop();
 }
 
+let score = 0;
+let isTopWallScored = false;
+export const getScore = () => score;
 export const restartBrickWalls = (app: Application) => {
+    score = 0;
+    isTopWallScored = false;
     wallsContainer.x = app.screen.width / 2;
     wallsContainer.y = app.screen.height;
 
@@ -66,10 +71,19 @@ function endlessScroll(app: Application, container: Container) {
         container.y = container.y - downwardVelocity;
 
         const topWall = container.getChildAt(0) as SpriteIntersect;
+
+        const leafTopY = getLeafTopY();
+        const topWallBottomY = topWall.y + container.y;
+        if (leafTopY > topWallBottomY && !isTopWallScored){
+            isTopWallScored = true;
+            score += 1;
+        }
+
         if (wallIsAboveScreen(topWall)) {
             container.removeChild(topWall);
             moveWallBelowScreen(topWall)
             container.addChild(topWall); // puts wall at end of container's children array
+            isTopWallScored = false;
         }
     })
 

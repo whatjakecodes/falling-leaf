@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import {initializeBrickWalls, restartBrickWalls, stopWalls} from "./gameplay/walls";
+import {getScore, initializeBrickWalls, restartBrickWalls, stopWalls} from "./gameplay/walls";
 import {initializeLeaf, restartLeaf, stopLeaf} from "./gameplay/leaf";
 
 const START_KEYS = ["KeyA", "KeyD", "ArrowLeft", "ArrowRight"];
@@ -14,37 +14,42 @@ export function startGame(app: PIXI.Application) {
     startText.x = app.screen.width / 2
     startText.y = app.screen.height / 2
 
-    document.addEventListener('keydown', (key: KeyboardEvent) => {
-        if (START_KEYS.indexOf(key.code) === -1) return
+    document.addEventListener('keydown', initializeGame, {once: true})
+    app.stage.addChild(startText)
 
+    function initializeGame(key: KeyboardEvent) {
+        if (START_KEYS.indexOf(key.code) === -1) return
         initializeLeaf(app)
         initializeBrickWalls(app)
         app.stage.removeChild(startText)
-    }, {once: true})
-
-    app.stage.addChild(startText)
+    }
 }
 
 export function endGame() {
     stopLeaf();
     stopWalls();
-    showRestart()
+    showRestart(getScore())
 }
 
-function showRestart() {
-    const restartText = new PIXI.Text('Press A,D,<-,-> to try again', {
+function showRestart(previousScore: number) {
+    const message = 'Score: ' + previousScore + '\nPress A,D,<-,-> to try again'
+    const restartText = new PIXI.Text(message, {
         fill: 'white',
     })
     restartText.anchor.set(0.5)
     restartText.x = globalApp.screen.width / 2
     restartText.y = globalApp.screen.height / 2
+
     globalApp.stage.addChild(restartText)
 
-    document.addEventListener('keydown', (key: KeyboardEvent) => {
+    // todo: wait for 1 keyup before restarting game, for players who hold the left/right keys down when collision occurs
+    document.addEventListener('keydown', restartGame, {once: true})
+
+    function restartGame(key: KeyboardEvent) {
         if (START_KEYS.indexOf(key.code) === -1) return
 
         restartLeaf(globalApp)
         restartBrickWalls(globalApp)
         globalApp.stage.removeChild(restartText)
-    }, {once: true})
+    }
 }
