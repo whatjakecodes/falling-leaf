@@ -8,10 +8,10 @@
   },
   "dependencies": {
     "pixi-filters": "^4.1.5",
-    "pixi.js": "^6.2.0",
-    "yy-intersects": "^1.0.8"
+    "pixi.js": "^6.2.0"
   },
   "devDependencies": {
+    "@types/offscreencanvas": "^2019.6.4",
     "typescript": "^4.3.2",
     "vite": "^2.6.4"
   }
