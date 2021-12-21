@@ -121,7 +121,7 @@ const startLeafVelocity = (leafContainer: Container, screenWidth: number) => {
         const leafSprite = leafContainer.getChildAt(0) as SpriteIntersect ;
         const wallRectPoints1 = getWallRectPoints(0);
         const wallRectPoints2 = getWallRectPoints(1);
-        if(leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2) || collidesRightWall(screenWidth)) {
+        if(leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2) || collidesBorderWall(screenWidth)) {
             onLeafCollision()
             return;
         }
@@ -135,9 +135,9 @@ const startLeafVelocity = (leafContainer: Container, screenWidth: number) => {
         setDownwardVelocity(newDownwardVelocity);
     })
 
-    function collidesRightWall(screenWidth: number): boolean {
-        const leafRight = leafContainer.x + leafContainer.width/2;
-        const leafLeft = leafContainer.x - leafContainer.width/2;
+    function collidesBorderWall(screenWidth: number): boolean {
+        const leafRight = leafContainer.x + leafContainer.width;
+        const leafLeft = leafContainer.x - leafContainer.width;
 
         const wallWidth = 20;
 
