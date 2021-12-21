@@ -43,7 +43,7 @@ export const initializeLeaf = (app: Application) => {
 
     app.stage.addChild(leaf);
 
-    startLeafVelocity(leaf);
+    startLeafVelocity(leaf, app.screen.width);
 };
 
 export const getLeafTopY = () => {
@@ -116,24 +116,38 @@ const onKeyUp = () => {
 };
 
 let leafTicker: Ticker;
-const startLeafVelocity = (leaf: Container) => {
+const startLeafVelocity = (leafContainer: Container, screenWidth: number) => {
     leafTicker = Ticker.shared.add(() => {
-        const leafSprite = leaf.getChildAt(0) as SpriteIntersect ;
+        const leafSprite = leafContainer.getChildAt(0) as SpriteIntersect ;
         const wallRectPoints1 = getWallRectPoints(0);
         const wallRectPoints2 = getWallRectPoints(1);
-        if(leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2)) {
+        if(leafSprite.collides(wallRectPoints1) || leafSprite.collides(wallRectPoints2) || collidesRightWall(screenWidth)) {
             onLeafCollision()
             return;
         }
 
         // from 2 - 6
-        leaf.x = leaf.x + (leaf.rotation - DEFAULT_ROTATION) / Math.PI * -12;
+        leafContainer.x = leafContainer.x + (leafContainer.rotation - DEFAULT_ROTATION) / Math.PI * -12;
         const MAX_VELOCITY = 8;
-        let newDownAngle = Math.abs(leaf.rotation - DEFAULT_ROTATION) / Math.PI;
+        let newDownAngle = Math.abs(leafContainer.rotation - DEFAULT_ROTATION) / Math.PI;
 
         const newDownwardVelocity = MAX_VELOCITY - newDownAngle * MAX_VELOCITY;
         setDownwardVelocity(newDownwardVelocity);
     })
+
+    function collidesRightWall(screenWidth: number): boolean {
+        const leafRight = leafContainer.x + leafContainer.width/2;
+        const leafLeft = leafContainer.x - leafContainer.width/2;
+
+        const wallWidth = 20;
+
+        const rightWallEdge = screenWidth - wallWidth;
+        const leftWallEdge = wallWidth;
+
+        const collidesRightWall = leafRight >= rightWallEdge;
+        const collidesLeftWall = leafLeft <= leftWallEdge;
+        return collidesRightWall || collidesLeftWall;
+    }
 }
 
 export const stopLeaf = () => {
