@@ -3,8 +3,10 @@ import {Application, Container, Sprite, Texture, Ticker} from "pixi.js";
 import {bindDownwardVelocity, getLeafTopY} from "./leaf";
 import {SpriteIntersect} from "../vendorTypes/yy-intersect";
 import brickIconography from "../assets/bricks_smallllll.jpg";
+import verticalWallIconography from "../assets/vertical_wall.jpg";
 
 const wallTexture = Texture.from(brickIconography);
+const verticalWallTexture = Texture.from(verticalWallIconography);
 
 let downwardVelocity = 0;
 bindDownwardVelocity((v: number) => {
@@ -16,6 +18,7 @@ let INITIAL_LEFT_WALL_Y: number;
 let INITIAL_RIGHT_WALL_Y: number;
 let leftHorizontalWall: Sprite;
 let rightHorizontalWall: Sprite;
+
 export const initializeBrickWalls = (app: Application) => {
     wallsContainer.x = app.screen.width / 2;
     wallsContainer.y = app.screen.height;
@@ -31,6 +34,14 @@ export const initializeBrickWalls = (app: Application) => {
     INITIAL_RIGHT_WALL_Y = rightHorizontalWall.y;
 
     endlessScroll(app, wallsContainer);
+
+
+    const verticalWallsContainer = new Container();
+    const rightVerticalWall = createVerticalWall(app.screen.width - 20, app.screen.height/2, app.screen.height);
+    const leftVerticalWall = createVerticalWall(20, app.screen.height / 2, app.screen.height)
+    verticalWallsContainer.addChild(rightVerticalWall);
+    verticalWallsContainer.addChild(leftVerticalWall);
+    app.stage.addChild(verticalWallsContainer);
 };
 
 export const stopWalls = () => {
@@ -106,6 +117,19 @@ function createHorizontalWall(xPosition: number, yPosition: number): SpriteInter
 
     return wall;
 }
+
+function createVerticalWall(xPosition: number, yPosition: number, height: number): SpriteIntersect {
+    const verticalWall = new SpriteIntersect(verticalWallTexture);
+    // verticalWall.name = `right-vertical-wall`
+    verticalWall.width = 40;
+    verticalWall.height = height;
+    verticalWall.anchor.set(0.5, 0.5);
+    verticalWall.x = xPosition;
+    verticalWall.y = yPosition;
+
+    return verticalWall
+}
+
 
 export function getWallRectPoints(index: number): number[] {
     let wall = wallsContainer.getChildAt(index).getBounds();
