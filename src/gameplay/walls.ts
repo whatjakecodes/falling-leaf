@@ -1,4 +1,4 @@
-import {Application, Container, Sprite, Texture, Ticker,} from "pixi.js";
+import {Application, Container, Sprite, Texture, Ticker} from "pixi.js";
 
 import {bindDownwardVelocity, getLeafTopY} from "./leaf";
 import {SpriteIntersect} from "../vendorTypes/yy-intersect";
@@ -14,28 +14,21 @@ bindDownwardVelocity((v: number) => {
 const wallsContainer = new Container();
 let INITIAL_LEFT_WALL_Y: number;
 let INITIAL_RIGHT_WALL_Y: number;
-let leftWall: Sprite;
-let rightWall: Sprite;
+let leftHorizontalWall: Sprite;
+let rightHorizontalWall: Sprite;
 export const initializeBrickWalls = (app: Application) => {
     wallsContainer.x = app.screen.width / 2;
     wallsContainer.y = app.screen.height;
 
-    const xScale = 0.25;
-    const yScale = 0.6;
-    leftWall = createWall();
-    leftWall.x = -app.screen.width * xScale;
-    leftWall.y = 0;
+    leftHorizontalWall = createHorizontalWall(-app.screen.width, 0);
+    rightHorizontalWall = createHorizontalWall(app.screen.width, app.screen.height);
 
-    rightWall = createWall();
-    rightWall.x = app.screen.width * xScale;
-    rightWall.y = app.screen.height * yScale;
-
-    wallsContainer.addChild(leftWall);
-    wallsContainer.addChild(rightWall);
+    wallsContainer.addChild(leftHorizontalWall);
+    wallsContainer.addChild(rightHorizontalWall);
     app.stage.addChild(wallsContainer);
 
-    INITIAL_LEFT_WALL_Y = leftWall.y;
-    INITIAL_RIGHT_WALL_Y = rightWall.y;
+    INITIAL_LEFT_WALL_Y = leftHorizontalWall.y;
+    INITIAL_RIGHT_WALL_Y = rightHorizontalWall.y;
 
     endlessScroll(app, wallsContainer);
 };
@@ -53,14 +46,14 @@ export const restartBrickWalls = (app: Application) => {
     wallsContainer.x = app.screen.width / 2;
     wallsContainer.y = app.screen.height;
 
-    wallsContainer.removeChild(leftWall)
-    wallsContainer.removeChild(rightWall)
+    wallsContainer.removeChild(leftHorizontalWall)
+    wallsContainer.removeChild(rightHorizontalWall)
 
-    leftWall.y = INITIAL_LEFT_WALL_Y;
-    rightWall.y = INITIAL_RIGHT_WALL_Y;
+    leftHorizontalWall.y = INITIAL_LEFT_WALL_Y;
+    rightHorizontalWall.y = INITIAL_RIGHT_WALL_Y;
 
-    wallsContainer.addChild(leftWall)
-    wallsContainer.addChild(rightWall)
+    wallsContainer.addChild(leftHorizontalWall)
+    wallsContainer.addChild(rightHorizontalWall)
 
     wallTicker.start();
 };
@@ -97,12 +90,20 @@ function endlessScroll(app: Application, container: Container) {
 }
 
 let wallCount = 0;
-function createWall(): SpriteIntersect {
+function createHorizontalWall(xPosition: number, yPosition: number): SpriteIntersect {
     const wall = new SpriteIntersect(wallTexture);
     wall.name = `wall-${++wallCount}`
     wall.width = 300;
     wall.height = 40;
     wall.anchor.set(0.5, 0.5);
+
+
+    const X_SCALE = 0.25;
+    const Y_SCALE = 0.6;
+
+    wall.x = xPosition * X_SCALE;
+    wall.y = yPosition * Y_SCALE;
+
     return wall;
 }
 
