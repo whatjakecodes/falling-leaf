@@ -18,7 +18,7 @@ export class SpriteIntersect extends Sprite {
         //  |__*__|
 
         const sprite = this;
-        const width = 100 / 2, height = 125 / 2;
+        const width = 100, height = 125;
 
         const {x: topX, y: topY} = sprite.toGlobal({x: 0, y: -height / 2});
         const {x: rightX, y: rightY} = sprite.toGlobal({x: width / 2, y: 0});
