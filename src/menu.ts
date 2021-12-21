@@ -1,22 +1,20 @@
 import * as PIXI from "pixi.js";
-import {getScore, initializeBrickWalls, restartBrickWalls, stopWalls} from "./gameplay/walls";
-import {initializeLeaf, restartLeaf, stopLeaf} from "./gameplay/leaf";
-import {Ticker} from "pixi.js";
+import {initializeBrickWalls, restartBrickWalls} from "./gameplay/walls";
+import {initializeLeaf, restartLeaf} from "./gameplay/leaf";
 
-const START_KEYS = ["KeyA", "KeyD", "ArrowLeft", "ArrowRight"];
+const START_KEYS = ["Enter"];
 let globalApp: PIXI.Application;
 
 export function startGame(app: PIXI.Application) {
     globalApp = app;
-    const startText = new PIXI.Text('Press A,D,<-,-> to start', {
+    const startText = new PIXI.Text('Press "Enter" to start', {
         fill: 'white',
     })
     startText.anchor.set(0.5)
     startText.x = app.screen.width / 2
     startText.y = app.screen.height / 2
 
-    Ticker.shared.maxFPS = 60;
-    document.addEventListener('keydown', initializeGame, {once: true})
+    document.addEventListener('keyup', initializeGame)
     app.stage.addChild(startText)
 
     function initializeGame(key: KeyboardEvent) {
@@ -24,17 +22,12 @@ export function startGame(app: PIXI.Application) {
         initializeLeaf(app)
         initializeBrickWalls(app)
         app.stage.removeChild(startText)
+        document.removeEventListener('keyup', initializeGame)
     }
 }
 
-export function endGame() {
-    stopLeaf();
-    stopWalls();
-    showRestart(getScore())
-}
-
-function showRestart(previousScore: number) {
-    const message = 'Score: ' + previousScore + '\nPress A,D,<-,-> to try again'
+export function showRestart(previousScore: number) {
+    const message = 'Score: ' + previousScore + '\nPress "Enter" to try again'
     const restartText = new PIXI.Text(message, {
         fill: 'white',
     })
@@ -45,7 +38,7 @@ function showRestart(previousScore: number) {
     globalApp.stage.addChild(restartText)
 
     // todo: wait for 1 keyup before restarting game, for players who hold the left/right keys down when collision occurs
-    document.addEventListener('keydown', restartGame, {once: true})
+    document.addEventListener('keyup', restartGame)
 
     function restartGame(key: KeyboardEvent) {
         if (START_KEYS.indexOf(key.code) === -1) return
@@ -53,5 +46,6 @@ function showRestart(previousScore: number) {
         restartLeaf(globalApp)
         restartBrickWalls(globalApp)
         globalApp.stage.removeChild(restartText)
+        document.removeEventListener('keyup', restartGame)
     }
 }

@@ -5,8 +5,8 @@ import {
 
 import leafIconography from "../assets/leaf.svg";
 import {SpriteIntersect} from "../vendorTypes/yy-intersect";
-import {getWallRectPoints} from "./walls";
-import {endGame} from "../menu";
+import {getScore, getWallRectPoints, stopWalls} from "./walls";
+import {showRestart} from "../menu";
 
 let leaf: Container;
 const DEFAULT_ROTATION = Math.PI;
@@ -38,10 +38,11 @@ export const initializeLeaf = (app: Application) => {
     leafSpriteIntersect.name = "LEAF"
 
     leaf = container;
-
-    leaf.rotation = DEFAULT_ROTATION;
-
+    setDefaultLeafRotation();
     app.stage.addChild(leaf);
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
 
     startLeafVelocity(leaf, app.screen.width);
 };
@@ -51,9 +52,10 @@ export const getLeafTopY = () => {
 }
 
 export const restartLeaf = (app: Application) => {
-    // move leaf to top middle
     leaf.x = app.screen.width / 2;
     leaf.y = app.screen.height / 2;
+
+    setDefaultLeafRotation();
 
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
@@ -63,7 +65,7 @@ export const restartLeaf = (app: Application) => {
 };
 
 const angles = [0.4, 0.2, -0.2, -0.4];
-let currentTwist = Math.floor(angles.length / 2);
+let currentTwist: number;
 
 const MAX_RIGHT = angles.length - 1;
 const MAX_LEFT = 0;
@@ -71,6 +73,11 @@ const MAX_LEFT = 0;
 const setTwist = (twist: number) => {
     leaf.rotation = DEFAULT_ROTATION + Math.PI * angles[twist];
 };
+
+function setDefaultLeafRotation() {
+    setTwist(MAX_RIGHT);
+    currentTwist = MAX_RIGHT;
+}
 
 const onPressLeft = () => {
     if (currentTwist === MAX_LEFT) return;
@@ -81,6 +88,7 @@ const onPressRight = () => {
     if (currentTwist === MAX_RIGHT) return;
     setTwist(++currentTwist);
 };
+
 
 let isKeyDown = false;
 let timeoutId: number;
@@ -126,7 +134,6 @@ const startLeafVelocity = (leafContainer: Container, screenWidth: number) => {
             return;
         }
 
-        // from 2 - 6
         leafContainer.x = leafContainer.x + (leafContainer.rotation - DEFAULT_ROTATION) / Math.PI * -12;
         const MAX_VELOCITY = 8;
         let newDownAngle = Math.abs(leafContainer.rotation - DEFAULT_ROTATION) / Math.PI;
@@ -156,10 +163,17 @@ export const stopLeaf = () => {
 }
 
 const onLeafCollision = () => {
-    endGame();
-    document.removeEventListener("keydown", onKeyDown);
-    document.removeEventListener("keyup", onKeyUp);
+    stopLeaf();
+    stopWalls();
+    showRestart(getScore());
+    clearLeafControls();
 }
 
-document.addEventListener("keydown", onKeyDown);
-document.addEventListener("keyup", onKeyUp);
+function clearLeafControls() {
+    document.removeEventListener("keydown", onKeyDown);
+    document.removeEventListener("keyup", onKeyUp);
+    if (timeoutId) {
+        clearTimeout(timeoutId)
+        isKeyDown = false
+    }
+}
