@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import {getScore, initializeBrickWalls, restartBrickWalls, stopWalls} from "./gameplay/walls";
 import {initializeLeaf, restartLeaf, stopLeaf} from "./gameplay/leaf";
+import {Ticker} from "pixi.js";
 
 const START_KEYS = ["KeyA", "KeyD", "ArrowLeft", "ArrowRight"];
 let globalApp: PIXI.Application;
@@ -14,6 +15,7 @@ export function startGame(app: PIXI.Application) {
     startText.x = app.screen.width / 2
     startText.y = app.screen.height / 2
 
+    Ticker.shared.maxFPS = 60;
     document.addEventListener('keydown', initializeGame, {once: true})
     app.stage.addChild(startText)
 
