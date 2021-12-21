@@ -33,16 +33,22 @@ export const initializeBrickWalls = (app: Application) => {
     INITIAL_LEFT_WALL_Y = leftHorizontalWall.y;
     INITIAL_RIGHT_WALL_Y = rightHorizontalWall.y;
 
-    endlessScroll(app, wallsContainer);
-
-
-    const verticalWallsContainer = new Container();
-    const rightVerticalWall = createVerticalWall(app.screen.width - 20, app.screen.height/2, app.screen.height);
-    const leftVerticalWall = createVerticalWall(20, app.screen.height / 2, app.screen.height)
-    verticalWallsContainer.addChild(rightVerticalWall);
-    verticalWallsContainer.addChild(leftVerticalWall);
-    app.stage.addChild(verticalWallsContainer);
+    endlessObstacleWallsScroll(app, wallsContainer);
+    configureBorderWalls(app);
 };
+
+function configureBorderWalls(app: Application) {
+    const verticalWallsContainer = new Container();
+    const borderWalls = [
+        createRightVerticalWall(app),
+        createRightVerticalWall(app),
+        createLeftVerticalWall(app),
+        createLeftVerticalWall(app)
+    ]
+    borderWalls.forEach(wall => verticalWallsContainer.addChild(wall));
+    app.stage.addChild(verticalWallsContainer);
+    endlessVerticalWallScroll(app, verticalWallsContainer);
+}
 
 export const stopWalls = () => {
     if (wallTicker) wallTicker.stop();
@@ -70,34 +76,57 @@ export const restartBrickWalls = (app: Application) => {
 };
 
 let wallTicker: Ticker;
-function endlessScroll(app: Application, container: Container) {
+
+function endlessObstacleWallsScroll(app: Application, container: Container) {
     wallTicker = Ticker.shared.add(() => {
         container.y = container.y - downwardVelocity;
 
         const topWall = container.getChildAt(0) as SpriteIntersect;
+        calculateScore(topWall, container);
 
-        const leafTopY = getLeafTopY();
-        const topWallBottomY = topWall.y + container.y;
-        if (leafTopY > topWallBottomY && !isTopWallScored){
-            isTopWallScored = true;
-            score += 1;
-        }
-
-        if (wallIsAboveScreen(topWall)) {
+        if (wallIsAboveScreen(topWall, container)) {
             container.removeChild(topWall);
-            moveWallBelowScreen(topWall)
+            moveWallBelowScreen(topWall, container, app.screen.height)
             container.addChild(topWall); // puts wall at end of container's children array
             isTopWallScored = false;
         }
     })
+}
 
-    function wallIsAboveScreen(wall: Sprite) {
-        return wall.y + wall.height / 2 + container.y < 0
+function calculateScore(topWall: SpriteIntersect, container: Container) {
+    const leafTopY = getLeafTopY();
+    const topWallBottomY = topWall.y + container.y;
+    if (leafTopY > topWallBottomY && !isTopWallScored) {
+        isTopWallScored = true;
+        score += 1;
     }
+}
 
-    function moveWallBelowScreen(wall: Sprite) {
-        wall.y = app.screen.height - container.y + wall.height / 2
-    }
+function endlessVerticalWallScroll(app: Application, container: Container) {
+    Ticker.shared.add(() => {
+        container.y = container.y - downwardVelocity;
+
+        const rightWall1 = container.getChildByName("right-wall-1") as Sprite;
+        const leftWall1 = container.getChildByName("left-wall-1") as Sprite;
+        const rightWall2 = container.getChildByName("right-wall-2") as Sprite;
+        const leftWall2 = container.getChildByName("left-wall-2") as Sprite;
+
+        if (wallIsAboveScreen(rightWall1, container)) {
+            moveWallBelowScreen(rightWall1, container, app.screen.height)
+            moveWallBelowScreen(leftWall1, container, app.screen.height)
+        } else if (wallIsAboveScreen(rightWall2, container)) {
+            moveWallBelowScreen(rightWall2, container, app.screen.height)
+            moveWallBelowScreen(leftWall2, container, app.screen.height)
+        }
+    })
+}
+
+function wallIsAboveScreen(wall: Sprite, container: Container) {
+    return wall.y + wall.height / 2 + container.y < 0
+}
+
+function moveWallBelowScreen(wall: Sprite, container: Container, screenHeight: number) {
+    wall.y = screenHeight - container.y + wall.height / 2
 }
 
 let wallCount = 0;
@@ -118,18 +147,43 @@ function createHorizontalWall(xPosition: number, yPosition: number): SpriteInter
     return wall;
 }
 
-function createVerticalWall(xPosition: number, yPosition: number, height: number): SpriteIntersect {
+
+let rightVerticalWallCount = 0;
+
+function createRightVerticalWall(app: Application) {
+    rightVerticalWallCount += 1;
+
+    const xPosition = app.screen.width - 20;
+    const offset = (rightVerticalWallCount - 1) * app.screen.height;
+    const yPosition = offset + app.screen.height / 2;
+    const wall = createVerticalWall(xPosition, yPosition)
+    wall.name = `right-wall-${rightVerticalWallCount}`;
+    return wall;
+}
+
+let leftVerticalWallCount = 0;
+
+function createLeftVerticalWall(app: Application) {
+    leftVerticalWallCount += 1;
+
+    const xPosition = 20;
+    const offset = (leftVerticalWallCount - 1) * app.screen.height;
+    const yPosition = offset + app.screen.height / 2;
+    const wall = createVerticalWall(xPosition, yPosition)
+    wall.name = `left-wall-${leftVerticalWallCount}`;
+    return wall;
+}
+
+
+function createVerticalWall(xPosition: number, yPosition: number): SpriteIntersect {
     const verticalWall = new SpriteIntersect(verticalWallTexture);
-    // verticalWall.name = `right-vertical-wall`
     verticalWall.width = 40;
-    verticalWall.height = height;
+    verticalWall.height = 444;
     verticalWall.anchor.set(0.5, 0.5);
     verticalWall.x = xPosition;
     verticalWall.y = yPosition;
-
     return verticalWall
 }
-
 
 export function getWallRectPoints(index: number): number[] {
     let wall = wallsContainer.getChildAt(index).getBounds();
